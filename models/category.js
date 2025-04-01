@@ -2,41 +2,10 @@ const mongoose = require('mongoose');
 let Schema = mongoose.Schema
 
 const categorySchema = new Schema({
-    subcategories: {
-        food: {
-            type: [String]
-        },
-        healthWellness: {
-            type: [String]
-        },
-        electronics: {
-            type: [String]
-        },
-        healthWellness: {
-            type: [String]
-        },
-        homeFurniture: {
-            type: [String]
-        },
-        sports: {
-            type: [String]
-        },
-        booksMedia: {
-            type: [String]
-        },
-        clothing: {
-            type: [String]
-        },
-        beautySkincare: {
-            type: [String]
-        },
-        accessories: {
-            type: [String]
-        },
-        shoes: {
-            type: [String]
-        },
-
+    Category: {
+        type: String,
+        enum: ['food', 'healthWellness','electronics','homeFurniture','sports','clothing','beautySkincare','accessories','shoes'],
+        required: [true,'food , healthWellness , electronics , homeFurniture , clothing , beautySkincare , accessories , shoes ']
     }
 });
 
