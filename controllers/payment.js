@@ -14,10 +14,10 @@ exports.paymentCreate = async (req, res) => {
       });
     }
 
-    const totalPrice = order.quantity * order.product.price;
+    const totalPrice = order.quantity * order.productId.price;
 
     if (req.body.amount == totalPrice) {
-
+      
     }
     else {
       return res.status(400).json({
