@@ -7,7 +7,7 @@ const paymentSchema = new Schema({
         ref: 'user',
         required: true
     },
-    order: {
+    orders: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'order',
         required: true
@@ -15,11 +15,6 @@ const paymentSchema = new Schema({
     amount: {
         type: Number,
         required: true
-    },
-    buyNow: {
-        type: Boolean,
-        enum: ['false', 'true'],
-        default: 'false'
     },
     status: {
         type: String,
@@ -29,7 +24,7 @@ const paymentSchema = new Schema({
     paymentDate: {
         type: Date,
         require:[true,Date.now]
-    },
+    }
 });
 
 PAYMENT = mongoose.model('payment', paymentSchema);

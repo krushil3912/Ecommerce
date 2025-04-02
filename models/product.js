@@ -7,6 +7,11 @@ const productSchema = new Schema({
         ref: 'user',
         required: true
     },
+    productName: {
+        type: String,
+        trime : true,
+        required : [true,'Please Enter product Name']
+    },
     price: {
         type: Number,
         required: true

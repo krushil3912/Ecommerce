@@ -35,10 +35,13 @@ exports.userSignup = async function (req, res,next) {
 
         const createdata = await USER.create({ ...req.body, password: hashedPassword });
 
+        const token = jwt.sign({ id: createdata._id }, 'YP');
+
         res.status(200).json({
             status: "Success",
             message: "User created successfully!",
             createdata,
+            token
         });
     } catch (error) {
         res.status(404).json({
@@ -68,13 +71,11 @@ exports.userLogin = async function (req, res,next) {
         }
 
 
-        const token = jwt.sign({ id: logindata._id }, 'YP');
 
         res.status(200).json({
             status: "Success",
             message: "Login successfully",
             logindata,
-            token
         });
 
     } catch (error) {

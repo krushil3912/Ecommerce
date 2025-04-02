@@ -5,17 +5,21 @@ const ORDER = require('../models/order')
 
 exports.paymentCreate = async (req, res) => {
   try {
-    const order = await ORDER.findById(req.body.order).populate('productId'); 
 
+    // console.log("check ",req.body);
+
+    const order = await ORDER.findById(req.body.orders).populate('productId'); 
+
+    // console.log("order check ==> ",order);
     if (!order) {
       return res.status(404).json({
         status: "Fail",
         message: "Order not found."
       });
     }
-
-    const totalPrice = order.quantity * order.productId.price;
-
+    const totalPrice = order.quantity * order.productId[0].price;
+    // console.log("check ==> ",totalPrice);
+    
     if (req.body.amount == totalPrice) {
       
     }
@@ -79,9 +83,28 @@ exports.paymentCreate = async (req, res) => {
   }
 };
 
+exports.paymentFindAll = async (req, res) => {
+  try {
+    const payments = await PAYMENT.find().populate('user').populate('orders');
+    res.status(201).json({
+      status: "Success",
+      message: "User views successfully !",
+      payments
+    })
+  } catch (error) {
+    res.status(404).json({
+      status: "Fail",
+      message: error.message
+    })
+  }
+};
+
 exports.paymentFindOne = async (req, res) => {
   try {
-    const payment = await PAYMENT.findById(req.params.id).populate('userId').populate('orderId');
+    const payment = await PAYMENT.findById(req.params.id).populate([
+      {path: 'user'},
+      {path: 'orders'},
+    ]);
     if (!payment) {
       return res.status(404).json({ 
         status: "Fail",
@@ -101,21 +124,6 @@ exports.paymentFindOne = async (req, res) => {
   }
 };
 
-exports.paymentFindAll = async (req, res) => {
-  try {
-    const payments = await PAYMENT.find().populate('user').populate('order');
-    res.status(201).json({
-      status: "Success",
-      message: "User views successfully !",
-      payments
-    })
-  } catch (error) {
-    res.status(404).json({
-      status: "Fail",
-      message: error.message
-    })
-  }
-};
 
 exports.paymentUpdate = async (req, res) => {
   try {

@@ -3,16 +3,24 @@ const mongoose = require('mongoose')
 
 exports.createOrder = async (req, res) => {
     try {
-        const {userId} = req.body
-        let user = await ORDER.findOne({userId: userId})
-        if (user) {
-            throw new Error("Your Order Already Created");       
+        const product = await mongoose.model('product').findById(req.body.productId);
+        if (!product) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Product not found",
+            });
+        }
+
+        if (req.body.quantity > product.stock) {
+            return res.status(400).json({
+                status: "fail",
+                message: `Stock not available. Only ${product.stock} units are available.`,
+            });
         }
 
         const createdata = await ORDER.create(req.body);
-        if (!req.body.status) {
-            req.body.status = 'Pending';
-        }
+        product.stock -= req.body.quantity;
+        await product.save();
 
         res.status(201).json({
             status: "Success",
@@ -60,7 +68,7 @@ exports.findAllOrders = async (req, res, next) => {
             {
                 $lookup: {
                     from: 'categories',
-                    localField: 'productDetails.category',
+                    localField: 'productDetails.categoryId',
                     foreignField: '_id',
                     as: 'categoryDetails',
                 },
@@ -70,7 +78,6 @@ exports.findAllOrders = async (req, res, next) => {
             }
         ]);
 
-        ordersData = await ORDER.find()
         res.status(200).json({
             status: "Success",
             message: "Orders fetched successfully!",
@@ -106,7 +113,7 @@ exports.findoneOrder = async (req, res) => {
             {
                 $lookup: {
                     from: 'users',
-                    localField: 'user',
+                    localField: 'userId',
                     foreignField: '_id',
                     as: 'userDetails',
                 },
@@ -117,7 +124,7 @@ exports.findoneOrder = async (req, res) => {
             {
                 $lookup: {
                     from: 'products',
-                    localField: 'product',
+                    localField: 'productId',
                     foreignField: '_id',
                     as: 'productDetails',
                 },
@@ -133,7 +140,7 @@ exports.findoneOrder = async (req, res) => {
             {
                 $lookup: {
                     from: 'categories',
-                    localField: 'productDetails.category',
+                    localField: 'productDetails.categoryId',
                     foreignField: '_id',
                     as: 'categoryDetails',
                 },
@@ -143,12 +150,17 @@ exports.findoneOrder = async (req, res) => {
             },
         ]);
 
-        let orderData = await ORDER.findById(orderId)
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({
+                status: "fail",
+                message: 'Order not found or does not belong to the specified user',
+            });
+        }
 
         res.status(200).json({
             status: "Success",
             message: "Order fetched successfully!",
-            data: orderData,
+            data: orders[0],
         });
     } catch (error) {
         console.error(error);
@@ -163,13 +175,32 @@ exports.updateOrder = async (req, res) => {
     try {
         const orderId = req.params.id;
         const updatedOrder = await ORDER.findById(orderId);
-
         if (!updatedOrder) {
             return res.status(404).json({
-                status: "Fail",
+                status: "fail",
                 message: "Order not found",
             });
         }
+
+        const product = await mongoose.model('product').findById(updatedOrder.productId);
+
+        if (!product) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Product not found",
+            });
+        }
+
+        if (req.body.quantity > product.stock + updatedOrder.quantity) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Insufficient stock available",
+            });
+        }
+
+        product.stock += updatedOrder.quantity - req.body.quantity;
+        await product.save();
+
 
         const updatedData = await ORDER.findByIdAndUpdate(orderId, req.body, { new: true });
 
@@ -190,6 +221,7 @@ exports.updateOrder = async (req, res) => {
 exports.deleteOrder = async (req, res) => {
     try {
         let id = req.params.id
+
         const order = await ORDER.findById(id);
 
         if (!order) {
@@ -198,6 +230,18 @@ exports.deleteOrder = async (req, res) => {
                 message: "Order not found",
             });
         }
+        const product = await mongoose.model('product').findById(order.productId);
+
+        if (!product) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Product not found",
+            });
+        }
+
+        product.stock += order.quantity;
+        await product.save();
+
 
         await ORDER.findByIdAndDelete(id);
 
