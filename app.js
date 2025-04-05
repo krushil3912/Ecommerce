@@ -13,15 +13,11 @@ var paymentRouter = require('./routes/payment')
 var reviewRouter = require('./routes/review')
 var viewOrderRouter = require('./routes/viewOrder')
 var mongoose = require('mongoose')
-mongoose.connect('mongodb://0.0.0.0:27017/ecommerce')
-  .then(() => {
-    console.log("connected!");
+require('dotenv').config()
 
-  })
-  .catch((error) => {
-    console.log(error);
-
-  })
+mongoose.connect(process.env.DB_URL)
+  .then(() => {console.log("connected!");})
+  .catch((error) => {console.log(error);})
 var app = express();
 app.use(cors())
 // view engine setup

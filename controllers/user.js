@@ -35,7 +35,7 @@ exports.userSignup = async function (req, res,next) {
 
         const createdata = await USER.create({ ...req.body, password: hashedPassword });
 
-        const token = jwt.sign({ id: createdata._id }, 'YP');
+        const token = jwt.sign({ id: createdata._id }, process.env.SECURE_KEY);
 
         res.status(200).json({
             status: "Success",
